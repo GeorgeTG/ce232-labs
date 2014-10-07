@@ -7,8 +7,8 @@ vector1: .space 32
 
 test_byte_array: .byte
 'a','b','c','c','c','d','d','d','d','d','d','b','b','c','c','c','c','a','e','e','e','e','e','e','e','e','e','e','e','e','f', 0x1B
-
 term_char: .byte 0x1B
+new_line: .asciiz "New line"
 
 .text
 .globl main
@@ -17,18 +17,23 @@ main:
 
 
 la $a0, test_byte_array
-#jal print_till_esc
+jal print_till_esc
+
+la $v0, 4
+la $a0, new_line
+syscall
 
 la $a1, vector
 jal compress
 
 la $a0, vector
+jal print_compressed
+
 la $a1, vector1
 jal decompress
 
 la $a0, vector1
-li $v0, 4
-syscall
+jal print_till_esc
 
 li $v0, 10
 syscall
@@ -54,20 +59,21 @@ beq $t3, $t7, dc_func
 sb $t3, ($t8)
 addi $t8, $t8, 1 #inc dest
 
-j decompress
+j main_loop
 
 dc_func:
-addi $t9, $t9, 1
-lb $t2, ($t9)
-
-beq $t2, $t7, dc_ret #we found the esc char 2 times
+addi $t0, $t0, 2 #make i skip compression stuff
 addi $t9, $t9, 1
 lb $t3, ($t9)
+
+beq $t3, $t7, dc_ret #we found the esc char 2 times
+addi $t9, $t9, 1
+lb $t2, ($t9)
 
 li $t1, -1
 fill_bytes:
 addi $t1, $t1, 1
-beq $t1, $t2, decompress
+beq $t1, $t2, main_loop
 
 sb $t3, ($t8)
 addi $t8, $t8, 1
@@ -76,6 +82,9 @@ j fill_bytes
 dc_ret:
 sb $t7, ($t8)
 jr $ra
+
+
+
 
 compress:
 sub $sp, $sp, 8
@@ -123,6 +132,7 @@ f1:
 
 c_ret:
 sb $s0, 0($t8) #add escape at the end
+sb $s0, 1($t8)
 
 #---- restore saved regs------
 lb $s1, 0($sp)
@@ -134,18 +144,29 @@ jr $ra
 
 #----------- utils -----------------
 print_till_esc:
+	lb $t9, term_char
+	move $t0, $a0 #keep adress in $t0
+	pte_loop:
+		lb $t1, 0($t0)
+		beq $t1, $t9, end_pte
+
+		li $v0, 11
+		move $a0, $t1
+		syscall #print one byte
+
+		add $t0, $t0, 1
+	j pte_loop
+
+	end_pte:
+	jr $ra
+
+print_compressed:
 lb $t9, term_char
 move $t0, $a0 #keep adress in $t0
-pte_loop:
-lb $t1, 0($t0)
-beq $t1, $t9, end_func
 
-li $v0, 11
-move $a0, $t1
-syscall #print one byte
+pc_loop:
+	
 
-add $t0, $t0, 1
-j pte_loop
 
-end_func:
-jr $ra
+
+
