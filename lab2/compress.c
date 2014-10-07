@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 void compress(char* source, char* dest){
-    int i,j,k, dest_pos = 0;
+    int i, j = 0, k;
     char curr_char;
 
     for (i=0; source[i] != '\0'; i += j) {
@@ -11,16 +11,15 @@ void compress(char* source, char* dest){
 
         if (j <= 3) {
             for(k=0; k < j; k++){
-                dest[dest_pos++] = curr_char;
+                *(dest++) = curr_char;
             }
         } else {
-            dest[dest_pos++] = 0x1B;
-            dest[dest_pos++] = j;
-            dest[dest_pos++] = curr_char;
+            *(dest++) = 0x1B;
+            *(dest++) = j;
+            *(dest++) = curr_char;
         }
     }
-
-    dest[++dest_pos] = '\0';
+    *dest = '\0';
 }
 
 int main(int argc, char *argv[]) {
