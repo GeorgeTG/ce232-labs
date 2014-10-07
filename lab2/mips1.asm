@@ -2,6 +2,8 @@
 
 .align 0
 vector: .space 32
+.align 0
+vector1: .space 32
 
 test_byte_array: .byte
 'a','b','c','c','c','d','d','d','d','d','d','b','b','c','c','c','c','a','e','e','e','e','e','e','e','e','e','e','e','e','f', 0x1B
@@ -20,12 +22,60 @@ la $a0, test_byte_array
 la $a1, vector
 jal compress
 
-move $a0, $a1
-jal print_till_esc
+la $a0, vector
+la $a1, vector1
+jal decompress
+
+la $a0, vector1
+li $v0, 4
+syscall
 
 li $v0, 10
 syscall
 
+decompress:
+#$t0 i
+#$t1 j
+#$t2 char count
+#$t3 curr_char
+#$t9 source
+#$t8 dest
+
+lb $t7, term_char
+move $t8, $a1
+
+li $t0, -1
+main_loop:
+addi $t0, $t0, 1
+add $t9, $a0, $t0
+lb $t3, ($t9)
+
+beq $t3, $t7, dc_func
+sb $t3, ($t8)
+addi $t8, $t8, 1 #inc dest
+
+j decompress
+
+dc_func:
+addi $t9, $t9, 1
+lb $t2, ($t9)
+
+beq $t2, $t7, dc_ret #we found the esc char 2 times
+addi $t9, $t9, 1
+lb $t3, ($t9)
+
+li $t1, -1
+fill_bytes:
+addi $t1, $t1, 1
+beq $t1, $t2, decompress
+
+sb $t3, ($t8)
+addi $t8, $t8, 1
+j fill_bytes
+
+dc_ret:
+sb $t7, ($t8)
+jr $ra
 
 compress:
 sub $sp, $sp, 8
@@ -62,14 +112,14 @@ f1:
         beq $t2, $t1, f1
         sb $s1, 0($t8)
         addi $t8, $t8, 1
-    j fill_loop
+    	j fill_loop
 
     do_compr:
-    sb $s0, 0($t8)
-    sb $s1, 1($t8)
-    sb $t1, 2($t8)
-    addi $t8, $t8, 3
-j f1
+    	sb $s0, 0($t8)
+    	sb $s1, 1($t8)
+    	sb $t1, 2($t8)
+    	addi $t8, $t8, 3
+    	j f1
 
 c_ret:
 sb $s0, 0($t8) #add escape at the end
