@@ -36,12 +36,10 @@ void init_list(nodeL **HEAD, int firstData) {
 }
 
 void print_list(nodeL *HEAD) {
-    nodeL* sNode;
-    printf("List:( ");
-    for (sNode = HEAD; sNode != NULL; sNode = sNode->next) {
-        printf("%d ", sNode->data);
-    }
-    printf(")\n");
+    if (HEAD == NULL)
+        return;
+    printf("%d ", HEAD->data);
+    print_list(HEAD->next);
 }
 
 nodeL* insertElement(nodeL *head, int data) {
@@ -51,6 +49,20 @@ nodeL* insertElement(nodeL *head, int data) {
     }
 
     nodeL *sNode;
+
+    if( data < head->data){
+        sNode = (nodeL*)malloc(sizeof(nodeL));
+
+        if( !mem_is_ok(sNode) ){
+            perror("malloc failed");
+            exit(-1);
+        }
+
+        sNode->data = data;
+        sNode->next = head;
+        return sNode;
+    }
+
     for (sNode = head; sNode->next != NULL && sNode->next->data < data; sNode = sNode->next);
 
     insert_after(sNode, data);
@@ -67,7 +79,9 @@ int main (int argc, char *argv[]){
         printf("Give me a number: ");
         scanf("%d", &a);
         if( a==0 ){
+            printf("List:( ");
             print_list(head);
+            printf(")\n");
         } else {
             head = insertElement(head, a);
         }
