@@ -1,0 +1,121 @@
+
+module ALU #( parameter N = 32 ) (
+        input wire [N-1 : 0] inA,
+        input wire [N-1 : 0] inB,
+        input wire [3 : 0] op,
+
+        output reg [N-1 : 0] out,
+        output wire zero
+    );
+
+    always @(op, inA, inB) begin
+        case (op)
+            0: //bitwise AND
+                out = inA & inB;
+
+            1://bitwise OR
+                out = inA | inB;
+
+            2://add
+                out = inA + inB;
+
+            6://sub
+                out = inA - inB;
+
+            7://slt
+                out = ((inA < inB) ? 1 : 0);
+
+            12://nor
+                out = ~(inA | inB);
+
+            default:
+                begin
+                    $display("[ALU] [WARN] Unknown op code: %4d\n", op);
+                    out = 32'bx;
+                end
+        endcase
+    end //always
+
+    assign zero=(out == 0);
+
+endmodule //ALU
+
+
+module RegFile (
+        input wire clock,
+        input wire reset,
+        input wire [4 : 0] raA,
+        input wire [4 : 0] raB,
+        input wire [4 : 0] wa,
+        input wire wen,
+        input wire [31 : 0]wd,
+
+        output reg [31 : 0] rdA ,
+        output reg [31 : 0] rdB
+    );
+
+    integer i;
+    reg [31 : 0] regs[31 : 0];
+
+    //Asynchronous reset, negative edge triggered.
+    always @(negedge reset) begin
+        for(i = 0; i < 32; i = i + 1)// y u no i++??
+            regs[i] = 0;
+    end //reset
+
+    //Asynchronous read
+    always @(raA, raB) begin
+        rdA = regs[raA];
+        rdB = regs[raB];
+    end
+
+    //Negative clock edge triggered, write(wen and clock HIGH)
+    always @(negedge clock) begin
+        if( wen && reset) begin
+            regs[wa] <= wd;
+
+            $display("[REGFILE] [%4d] Wrote data %2d, to %2d (wen: %d)\n",
+                $time, wd, wa, wen);
+        end
+    end
+
+endmodule
+
+module Memory #( parameter SIZE = 1024 ) (
+        input wire ReadEnable,
+        input wire WriteEnable,
+        input wire clock,
+        input wire [31 : 0]Address,
+        input wire [31 : 0]DataIn,
+        
+        output wire [31 : 0]DataOut
+    );
+    
+    reg [31 : 0] data[SIZE-1 : 0];
+    
+    assign DataOut = 
+        (~WriteEnable && ReadEnable) ? 
+            data[Address[11:0]] : 32'bx; //TODO: add log2(SIZE)
+
+    always @(negedge clock) begin
+        if( ~ReadEnable && WriteEnable) begin
+            data[Address[11:0]] <= DataIn;
+
+            $display("[MEMORY][%4d] : Wrote %2d to %2d", 
+                $time,
+                DataIn,
+                Address
+            );
+        end
+    end
+
+endmodule
+
+
+
+
+
+
+
+
+
