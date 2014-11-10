@@ -81,7 +81,7 @@ module RegFile (
 
 endmodule
 
-module Memory #( parameter SIZE = 1024 ) (
+module Memory #( parameter SIZE = 4095 ) (
         input wire ReadEnable,
         input wire WriteEnable,
         input wire clock,
@@ -92,7 +92,15 @@ module Memory #( parameter SIZE = 1024 ) (
     );
     
     reg [31 : 0] data[SIZE-1 : 0];
-    
+    always @(ReadEnable or WriteEnable)
+        if (ReadEnable & WriteEnable)
+            $display ("[MEMORY][%2d] ReadEnable & WriteEnable both on!\n",
+                $time);
+
+    always @(posedge ReadEnable or posedge WriteEnable)
+        if (Address[31 : 0] != 0)
+            $display ("[MEMORY][%2d] Address MSBs not zero!\n", $time);
+
     assign DataOut = 
         (~WriteEnable && ReadEnable) ? 
             data[Address[11:0]] : 32'bx; //TODO: add log2(SIZE)
@@ -111,11 +119,29 @@ module Memory #( parameter SIZE = 1024 ) (
 
 endmodule
 
+module ProgramCounter #( parameter N = 32) (
+        input wire clock,
+        input wire reset,
+        input wire [N-1 : 0] PC_new,
 
+        output reg [N-1 : 0] PC
+    );
 
+    always @(posedge clock or negedge reset)
+        if (~reset)
+            PC <= 0;
+        else
+            PC <= PC_new
 
+endmodule
 
+module SignExtender(
+        input wire clock,
+        input wire [15 : 0] immideate,
 
+        output reg [31 : 0] extended
+    );
 
-
-
+    alawys @(posedge clock)
+        extended[15 : 0] = { 16{extend[7]}, immideate[7 : 0] };
+        
