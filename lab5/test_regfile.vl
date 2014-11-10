@@ -1,7 +1,6 @@
 `timescale 1ns/1ns
 
-module RegFile_tbench();
-    parameter N = 32;
+module RegisterFile_tbench();
 
     reg [4 : 0] raA;
     reg [4 : 0] raB;
@@ -14,7 +13,7 @@ module RegFile_tbench();
     reg reset, clock;
     
 
-    RegFile RegFile_t (clock, reset, raA, raB, wa, wen, wd, rdA, rdB);
+    RegisterFile RegisterFile_t (clock, reset, raA, raB, wa, wen, wd, rdA, rdB);
 
     always begin
       #5
