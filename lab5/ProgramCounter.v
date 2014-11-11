@@ -10,9 +10,9 @@ module ProgramCounter
 
         always @(posedge Clock or negedge Reset) begin
             if (~Reset)
-                PC <= 0;
+                PC = 0;
             else
-                PC <= PC_new;
+                PC = PC_new;
         end
 
 endmodule

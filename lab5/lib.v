@@ -21,12 +21,14 @@ module mux2to1
 endmodule
 
 module PCPlus4(
+        input wire Reset,
         input wire [31 : 0] PC,
 
         output wire [31 : 0] PC_plus4
     );
 
-    assign PC_plus4 = PC + 4;
+    assign PC_plus4 = ~Reset? 0 : PC + 4;
+
 endmodule
 
 module FullAdder

@@ -21,7 +21,7 @@ module RegisterFile (
     end //Reset
 
     //Asynchronous read
-    always @(ReadAddressA, ReadAddressB) begin
+    always @(ReadAddressA or ReadAddressB or posedge Clock) begin
         ReadDataA = Registers[ReadAddressA];
         ReadDataB = Registers[ReadAddressB];
     end

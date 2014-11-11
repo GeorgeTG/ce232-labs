@@ -18,6 +18,7 @@ module CPU
         wire [31 : 0] pc_plus4;
 
         PCPlus4 PCPlus4_0 (
+            .Reset(Reset),
             .PC(pc),
             .PC_plus4(pc_plus4)
         );
