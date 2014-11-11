@@ -6,7 +6,7 @@ vector: .space 32
 vector1: .space 32
 
 test_byte_array: .byte
-'a','b','c','c','c','d','d','d','d','d','d','b','b','c','c','c','c','a','e','e','e','e','e','e','e','e','e','e','e','e','f', 0x1B
+'a','b','c','c','c','d','d','d','d','d','d','b','b','b','b','c','c','a','e','e','e','e','e','e','e','e','e','e','e','e','f', 0x1B
 term_char: .byte 0x1B
 new_line: .asciiz "\n"
 
@@ -16,84 +16,95 @@ new_line: .asciiz "\n"
 main:
 
 
-la $a0, test_byte_array
-jal print_till_esc
+    la $a0, test_byte_array
+    jal print_till_esc
 
-la $v0, 4
-la $a0, new_line
-syscall
+    la $v0, 4
+    la $a0, new_line
+    syscall
 
-la $a0, test_byte_array
-la $a1, vector
-jal compress
+    la $a0, test_byte_array
+    la $a1, vector
+    jal compress
 
-la $a0, vector
-jal print_compressed
+    li $v0, 4
+    la $a0, new_line
+    syscall
 
-la $a0, vector
-la $a1, vector1
-jal decompress
+    la $a0, vector
+    la $a1, vector1
+    jal decompress
 
-la $v0, 4
-la $a0, new_line
-syscall
 
-la $a0, vector1
-jal print_till_esc
 
-li $v0, 10
-syscall
+    li $v0, 10
+    syscall
+
+
 
 decompress:
-xor $t0, $t0, $t0 #$t0 i
-xor $t1, $t1, $t1 #$t1 j
-xor $t2, $t2, $t2 #$t2 char count
-#$t3 curr_char
-#$t9 source
-#$t8 dest
+    #---- store $ra------
+    sub $sp, $sp, 4
+    sw $ra, 0($sp)
+    #-----------------
+    #$t0 i
+    #$t1 j
+    li, $t2, 0 #$t2 char count
+    #$t3 curr_char
+    #$t9 source
+    #$t8 dest
 
-lb $t7, term_char
-move $t8, $a1
+    lb $t7, term_char
+    move $t8, $a1
 
-li $t0, -1
-main_loop:
-addi $t0, $t0, 1
-add $t9, $a0, $t0
-lb $t3, ($t9)
+    li $t0, -1
+    main_loop:
+        addi $t0, $t0, 1
+        add $t9, $a0, $t0
+        lb $t3, ($t9)
 
-beq $t3, $t7, dc_func
-sb $t3, ($t8)
-addi $t8, $t8, 1 #inc dest
+        beq $t3, $t7, dc_func
+        sb $t3, ($t8)
+        addi $t8, $t8, 1 #inc dest
 
-j main_loop
+        j main_loop
 
-dc_func:
-addi $t0, $t0, 2 #make i skip compression stuff
-addi $t9, $t9, 1
-lb $t3, ($t9)
+    dc_func:
+    addi $t0, $t0, 2 #make i skip compression stuff
+    addi $t9, $t9, 1
+    lb $t3, ($t9)
 
-beq $t3, $t7, dc_ret #we found the esc char 2 times
-addi $t9, $t9, 1
-lb $t2, ($t9)
+    beq $t3, $t7, dc_ret #we found the esc char 2 times
+    addi $t9, $t9, 1
+    lb $t2, ($t9)
 
-li $t1, -1
-fill_bytes:
-addi $t1, $t1, 1
-beq $t1, $t2, main_loop
+    li $t1, -1
+    fill_bytes:
+    addi $t1, $t1, 1
+    beq $t1, $t2, main_loop
 
-sb $t3, ($t8)
-addi $t8, $t8, 1
-j fill_bytes
+    sb $t3, ($t8)
+    addi $t8, $t8, 1
+    j fill_bytes
 
-dc_ret:
-sb $t7, ($t8)
-jr $ra
+    dc_ret:
+    sb $t7, ($t8)
+    # print
+    move $a0, $a1
+    jal print_till_esc
+
+    #-----restore $ra-----
+    lw $ra, 0($sp)
+    add $sp, $sp, 4
+    #--------------------
+    jr $ra
 
 
 
 
 compress:
-sub $sp, $sp, 8
+sub $sp, $sp, 12
+sw $ra, 8($sp)
 sw $s0, 4($sp)
 sw $s1, 0($sp)
 lb $s0, term_char
@@ -136,17 +147,22 @@ f1:
     	addi $t8, $t8, 3
     	j f1
 
-c_ret:
-sb $s0, 0($t8) #add escape at the end
-sb $s0, 1($t8)
+    c_ret:
+    sb $s0, 0($t8) #add escape at the end
+    sb $s0, 1($t8)
 
-#---- restore saved regs------
-lb $s1, 0($sp)
-lb $s0, 4($sp)
-addi $sp, $sp, 8
-#-----------------------------
+    #print
+    move $a0, $a1
+    jal print_compressed
 
-jr $ra
+    #---- restore saved regs------
+    lw $s1, 0($sp)
+    lw $s0, 4($sp)
+    lw $ra, 8($sp)
+    addi $sp, $sp, 12
+    #-----------------------------
+
+    jr $ra
 
 
 
@@ -171,10 +187,10 @@ print_till_esc:
 	jr $ra
 
 
-print_compressed:	
+print_compressed:
 	lb $t9, term_char
 	move $t0, $a0 #keep adress in $t0
-	
+
 	pc_loop:
 		lb $t1, 0($t0)
 		beq $t1, $t9, check_again
@@ -185,13 +201,13 @@ print_compressed:
 
 		add $t0, $t0, 1
 	j pc_loop
-	
+
 	check_again:
 		lb $t2, 1($t0)
 		beq $t2, $t9, end_pc #we found two delimiters in a row
 
 		j continue_printing
-	
+
 	end_pc:
 	jr $ra
 

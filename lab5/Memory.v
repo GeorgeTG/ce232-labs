@@ -2,7 +2,7 @@
 module Memory #( parameter SIZE = 1024 ) (
         input wire ReadEnable,
         input wire WriteEnable,
-        input wire clock,
+        input wire Clock,
         input wire [31 : 0]Address,
         input wire [31 : 0]DataIn,
 
@@ -15,7 +15,7 @@ module Memory #( parameter SIZE = 1024 ) (
         (~WriteEnable && ReadEnable) ?
             data[Address[11:0]] : 32'bx; //TODO: add log2(SIZE)
 
-    always @(negedge clock) begin
+    always @(negedge Clock) begin
         if( ~ReadEnable && WriteEnable) begin
             data[Address[11:0]] <= DataIn;
 

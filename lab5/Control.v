@@ -3,11 +3,13 @@
 module Control
 (
         input wire [5:0] Op,
+
         output reg RegWrite,
         output reg RegDst,
         output reg ALUSrc,
         output reg Branch,
         output reg MemWrite,
+        output reg MemRead,
         output reg MemToReg,
         output reg [1:0] ALUOp
 );
@@ -21,6 +23,7 @@ module Control
                         ALUSrc = 1'b0;
                         Branch = 1'b0;
                         MemWrite = 1'b0;
+                        MemRead = 1'b0;
                         MemToReg = 1'b0;
                         ALUOp = 2'b10;
                     end
@@ -32,6 +35,7 @@ module Control
                         ALUSrc = 1'b1;
                         Branch = 1'b0;
                         MemWrite = 1'b0;
+                        MemRead = 1'b1;
                         MemToReg = 1'b1;
                         ALUOp = 2'b00;
                     end
@@ -43,6 +47,7 @@ module Control
                         ALUSrc = 1'b1;
                         Branch = 1'b0;
                         MemWrite = 1'b1;
+                        MemRead = 1'b0;
                         MemToReg = 1'bx;
                         ALUOp = 2'b00;
                     end
@@ -54,11 +59,23 @@ module Control
                         ALUSrc = 1'b0;
                         Branch = 1'b1;
                         MemWrite = 1'b0;
+                        MemRead = 1'b0;
                         MemToReg = 1'bx;
                         ALUOp = 2'b01;
                     end
 
-                `BEQ :
+                 `BNE : begin
+                     RegWrite = 1'b0;
+                     RegDst = 1'b0;
+                     ALUSrc = 1'b0;
+                     Branch = 1'b1;
+                     MemWrite = 1'b0;
+                     MemRead = 1'b0;
+                     MemToReg = 1'b0;
+                     ALUOp = 2'b11;
+                 end
+
+                 `ADDI :
                     begin
                         RegWrite = 1'b1;
                         RegDst = 1'b0;
