@@ -5,8 +5,8 @@ module CPU
         input wire Reset
 );
 
-        wire [31 : 0] pc_new;
         wire [31 : 0] pc;
+        wire [31 : 0] pc_new;
 
         ProgramCounter ProgramCounter_0(
             .Clock(Clock),
@@ -16,12 +16,7 @@ module CPU
         );
 
         wire [31 : 0] pc_plus4;
-
-        PCPlus4 PCPlus4_0 (
-            .Reset(Reset),
-            .PC(pc),
-            .PC_plus4(pc_plus4)
-        );
+        assign pc_plus4 = pc + 4;
 
         wire [31 : 0] instruction;
 
@@ -109,11 +104,7 @@ module CPU
 
         wire pc_mux_select;
 
-        and PcMuxSelectAnd (
-            pc_mux_select,
-            pc_plus4,
-            branch
-        );
+        assign pc_mux_select = alu_zero && branch;
 
         wire [31 : 0] pc_new_adder_shifted_input;
 

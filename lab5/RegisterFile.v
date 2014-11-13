@@ -20,10 +20,14 @@ module RegisterFile (
             Registers[i] = 0;
     end //Reset
 
-    //Asynchronous read
-    always @(ReadAddressA or ReadAddressB or posedge Clock) begin
+    //Asynchronous read, Re-read when clock goes high
+    always @(ReadAddressA or ReadAddressB or posedge Reset) begin
         ReadDataA = Registers[ReadAddressA];
         ReadDataB = Registers[ReadAddressB];
+
+        $display("[REGFILE] [%4d] ReadDataA %d,ReadDataB%d )\n",
+            $time, ReadDataA, ReadDataB);
+
     end
 
     //Negative Clock edge triggered, write(WriteEnable and Clock HIGH)

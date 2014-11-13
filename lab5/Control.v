@@ -64,16 +64,17 @@ module Control
                         ALUOp = 2'b01;
                     end
 
-                 `BNE : begin
-                     RegWrite = 1'b0;
-                     RegDst = 1'b0;
-                     ALUSrc = 1'b0;
-                     Branch = 1'b1;
-                     MemWrite = 1'b0;
-                     MemRead = 1'b0;
-                     MemToReg = 1'b0;
-                     ALUOp = 2'b11;
-                 end
+                `BNE :
+                    begin
+                        RegWrite = 1'b0;
+                        RegDst = 1'b0;
+                        ALUSrc = 1'b0;
+                        Branch = 1'b1;
+                        MemWrite = 1'b0;
+                        MemRead = 1'b0;
+                        MemToReg = 1'b0;
+                        ALUOp = 2'b10;
+                    end
 
                  `ADDI :
                     begin
