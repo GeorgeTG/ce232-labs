@@ -68,7 +68,7 @@ module Control
                         MemToReg = 1'bx;
                         ALUOp = 2'b01;
                     end
-
+/*
                 `BNE :
                     begin
                         RegWrite = 1'b0;
@@ -78,9 +78,8 @@ module Control
                         MemWrite = 1'b0;
                         MemRead = 1'b0;
                         MemToReg = 1'b0;
-                        ALUOp = 2'b10;
+                        ALUOp =
                     end
-
                  `ADDI :
                     begin
                         RegWrite = 1'b1;
@@ -92,6 +91,7 @@ module Control
                         ALUOp = 2'b00;
                     end
 
+*/
                 default:
                     begin
                         RegWrite = 1'b0;

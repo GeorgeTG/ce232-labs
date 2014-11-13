@@ -35,7 +35,7 @@ module cpu_tbench;
 
         reset = 1'b1;
 
-                #100
+        #100
 
         for( i=0; i < REGISTERS; i = i + 1)
             $display(" Register[%d] has value %d", i,
