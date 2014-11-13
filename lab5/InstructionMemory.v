@@ -1,3 +1,8 @@
+/*****************************************
+ *          Instruction Memory           *
+ *          George T. Gougoudis          *
+ *****************************************/
+
 module InstructionMemory
 #(parameter SIZE = 4095)
 (

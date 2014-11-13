@@ -1,3 +1,8 @@
+/**********************************************
+ * Main CPU module, with inline basic modules *
+ *          George T. Gougoudis               *
+ **********************************************/
+
 module CPU
 #( parameter INSTRUCTION_MEMORY_SIZE = 4096, parameter DATA_MEMORY_SIZE = 4096)
 (
@@ -44,13 +49,7 @@ module CPU
 
         wire [4 : 0] write_address_in;
 
-        mux2to1 #( .DATA_WIDTH(5)) RegDstMux
-        (
-            .InputA(instruction[20 : 16]),
-            .InputB(instruction[15 : 11]),
-            .Select(reg_dst),
-            .Out(write_address_in)
-        );
+        assign write_address_in = (reg_dst) ? instruction[15 : 11] : instruction[20 : 16];
 
         wire [31 : 0] write_data_in, read_data_out_a, read_data_out_b;
 
@@ -83,13 +82,7 @@ module CPU
 
         wire [31 : 0] alu_input_b;
 
-        mux2to1 #( .DATA_WIDTH(32) ) ALUInputBMux
-        (
-            .InputA(read_data_out_b),
-            .InputB(sign_extended),
-            .Select(alu_src),
-            .Out(alu_input_b)
-        );
+        assign alu_input_b = (alu_src)? sign_extended : read_data_out_b;
 
         wire alu_zero;
         wire [31 : 0] alu_out;
@@ -108,28 +101,13 @@ module CPU
 
         wire [31 : 0] pc_new_adder_shifted_input;
 
-        LeftShifter PcNewAdderShifter(
-            .Input(sign_extended),
-            .Out(pc_new_adder_shifted_input)
-        );
+        assign pc_new_adder_shifted_input = sign_extended << 2;
 
         wire [31 : 0] pc_mux_input_b;
-        wire z_carry;
 
-        FullAdder PcNewAdder(
-            .InputA(pc_plus4),
-            .InputB(pc_new_adder_shifted_input),
-            .Sum(pc_mux_input_b),
-            .Carry(z_carry)
-        );
+        assign pc_mux_input_b = pc_plus4 + pc_new_adder_shifted_input;
 
-        mux2to1 #( .DATA_WIDTH(32) ) PcNewMux
-        (
-            .InputA(pc_plus4),
-            .InputB(pc_mux_input_b),
-            .Select(pc_mux_select),
-            .Out(pc_new)
-        );
+        assign pc_new = (pc_mux_select) ? pc_mux_input_b : pc_plus4;
 
         wire [31 : 0] memory_read_data;
 
@@ -143,13 +121,7 @@ module CPU
             .DataOut(memory_read_data)
         );
 
-        mux2to1 #( .DATA_WIDTH(32) ) MemOutMux
-        (
-            .InputB(memory_read_data),
-            .InputA(alu_out),
-            .Select(mem_to_reg),
-            .Out(write_data_in)
-        );
+        assign write_data_in = (mem_to_reg) ? memory_read_data : alu_out;
 
 endmodule
 

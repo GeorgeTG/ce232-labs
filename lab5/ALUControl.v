@@ -1,3 +1,8 @@
+/*****************************************
+ *           ALUControl Module           *
+ *          George T. Gougoudis          *
+ *****************************************/
+
 module ALUControl
 (
         input wire [5 : 0] Function,

@@ -1,4 +1,8 @@
-// alwaya
+/*****************************************
+ *           Program Counter             *
+ *          George T. Gougoudis          *
+ *****************************************/
+
 module ProgramCounter
 #( parameter DATA_WIDTH = 32 )
 (

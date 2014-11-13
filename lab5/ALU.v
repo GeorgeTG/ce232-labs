@@ -1,3 +1,8 @@
+/*****************************************
+ *              Basic ALU                *
+ *          George T. Gougoudis          *
+ *****************************************/
+
 module ALU
 #( parameter DATA_WIDTH = 32 )
 (

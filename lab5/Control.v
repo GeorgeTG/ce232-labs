@@ -1,3 +1,8 @@
+/*****************************************
+ *           Main Control Uni            *
+ *          George T. Gougoudis          *
+ *****************************************/
+
 `include "opcodes.v"
 
 module Control
@@ -103,5 +108,4 @@ module Control
          end //always
 
  endmodule
-
 

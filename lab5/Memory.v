@@ -1,3 +1,7 @@
+/*****************************************
+ *             Data Memory               *
+ *          George T. Gougoudis          *
+ *****************************************/
 
 module Memory #( parameter SIZE = 1024 ) (
         input wire ReadEnable,

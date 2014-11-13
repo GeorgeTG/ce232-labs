@@ -1,3 +1,8 @@
+/*****************************************
+ *           Cpu Test Module             *
+ *          George T. Gougoudis          *
+ *****************************************/
+
 module cpu_tbench;
 
     localparam REGISTERS = 32;
