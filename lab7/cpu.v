@@ -17,13 +17,15 @@ module cpu(input clock, input reset);
  reg [4:0]  MEMWB_RegWriteAddr, MEMWB_instr_rd;
  reg [31:0] MEMWB_ALUOut;
  reg        MEMWB_MemToReg, MEMWB_RegWrite;
- wire [31:0] instr, ALUInA, ALUInB, ALUOut, rdA, rdB, signExtend, DMemOut, wRegData, PCIncr;
+ reg [31:0]  ALUInA, ALUInB;
+ wire [31:0] instr, ALUInBMux, ALUOut, rdA, rdB, signExtend, DMemOut, wRegData, PCIncr;
  wire Zero, RegDst, MemRead, MemWrite, MemToReg, ALUSrc, RegWrite, Branch;
  wire [5:0] opcode, func;
  wire [4:0] instr_rs, instr_rt, instr_rd, RegWriteAddr;
  wire [3:0] ALUOp;
  wire [1:0] ALUcntrl;
  wire [15:0] imm;
+ wire [1:0] ForwardA, ForwardB;
 
 
 /***************** Instruction Fetch Unit (IF)  ****************/
@@ -123,9 +125,10 @@ fsm_main fsm_main (RegDst,
 
 /***************** Execution Unit (EX)  ****************/
 
-assign ALUInA = IDEX_rdA;
+//assign ALUInA = IDEX_rdA;
 
-assign ALUInB = (IDEX_ALUSrc == 1'b0) ? IDEX_rdB : IDEX_signExtend;
+//assign ALUInB
+assign ALUInBMux = (IDEX_ALUSrc == 1'b0) ? IDEX_rdB : IDEX_signExtend;
 
 //  ALU
 ALU  #32 cpu_alu(ALUOut, Zero, ALUInA, ALUInB, ALUOp);
@@ -166,6 +169,25 @@ assign RegWriteAddr = (IDEX_RegDst==1'b0) ? IDEX_instr_rt : IDEX_instr_rd;
 
    // Instantiation of control logic for Forwarding goes here
 
+ForwardingUnit forwarding(IDEX_rdA, IDEX_rdB, RegWriteAddr, EXMEM_RegWrite, MEMWB_RegWrite, MEMWB_RegWriteAddr, ForwardA, ForwardB);
+
+always @(IDEX_rdA, wRegData, EXMEM_ALUOut, ForwardA) begin
+    case(ForwardA)
+        0 : ALUInA = IDEX_rdA;
+        1 : ALUInA = wRegData;
+        2 : ALUInA = EXMEM_ALUOut;
+        default: ALUInA = 0;
+    endcase
+end
+
+always @(ALUInBMux, wRegData, EXMEM_ALUOut, ForwardA) begin
+    case(ForwardA)
+        0 : ALUInB = ALUInBMux;
+        1 : ALUInB = wRegData;
+        2 : ALUInB = EXMEM_ALUOut;
+        default: ALUInA = 0;
+    endcase
+end
 
 /***************** Memory Unit (MEM)  ****************/
 

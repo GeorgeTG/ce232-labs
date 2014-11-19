@@ -1,7 +1,7 @@
 `include "constants.h"
 `timescale 1ns/1ps
 
-// Small ALU. Inputs: inA, inB. Output: out. 
+// Small ALU. Inputs: inA, inB. Output: out.
 // Operations: bitwise and (op = 0)
 //             bitwise or  (op = 1)
 //             addition (op = 2)
@@ -15,12 +15,12 @@ module ALU (out, zero, inA, inB, op);
   input  [N-1:0] inA, inB;
   input    [3:0] op;
 
-  assign out = 
+  assign out =
 			(op == 4'b0000) ? inA & inB :
 			(op == 4'b0001) ? inA | inB :
-			(op == 4'b0010) ? inA + inB : 
-			(op == 4'b0110) ? inA - inB : 
-			(op == 4'b0111) ? ((inA < inB)?1:0) : 
+			(op == 4'b0010) ? inA + inB :
+			(op == 4'b0110) ? inA - inB :
+			(op == 4'b0111) ? ((inA < inB)?1:0) :
 			(op == 4'b1100) ? ~(inA | inB) :
 			'bx;
 
@@ -47,10 +47,10 @@ module Memory (clock, reset, ren, wen, addr, din, dout);
   always @(posedge ren or posedge wen) begin
     if (addr[31:10] != 0)
       $display("Memory WARNING (time %0d): address msbs are not zero\n", $time);
-  end  
+  end
 
   assign dout = ((wen==1'b0) && (ren==1'b1)) ? data[addr[9:0]] : 32'bx;
-  
+
   /* Write memory in the negative edge of the clock */
    always @(negedge clock)
    begin
@@ -70,18 +70,75 @@ module RegFile (clock, reset, raA, raB, wa, wen, wd, rdA, rdB);
   input         wen;
   input  [31:0] wd;
   output [31:0] rdA, rdB;
-  
+
   reg [31:0] data[31:0];
-  
+
   wire [31:0] rdA = data[raA];
   wire [31:0] rdB = data[raB];
-  
-  // Make sure  that register file is only written at the negative edge of the clock 
+
+  // Make sure  that register file is only written at the negative edge of the clock
   always @(negedge clock)
    begin
     if (reset == 1'b1 && wen == 1'b1 && wa != 5'b0)
         data[wa] =  wd;
    end
+
+endmodule
+
+
+// Forwarding Unit. Read ports: iD/EX RegisterRt
+//                              ID/EX RegisterRS
+//                              EX/MEM RegisterRd
+//                              EX/MEM RegWrite
+//                              MEM/WB RegisterRd
+//                              MEM/WB RegWrite
+//                 Write Ports: ForwardA
+//                              ForwardB
+
+module ForwardingUnit
+(
+        input wire [31:0] ID_EX_RegisterRt,
+        input wire [31:0] ID_EX_RegisterRs,
+        input wire [4:0] EX_MEM_RegisterRd,
+        input wire EX_MEM_RegWrite,
+        input wire MEM_WB_RegWrite,
+        input wire [4:0] MEM_WB_RegisterRd,
+        output reg [1:0] ForwardA,
+        output reg [1:0] ForwardB
+);
+
+    always @*
+        if (MEM_WB_RegWrite &&
+                (MEM_WB_RegisterRd != 0) &&
+                (MEM_WB_RegisterRd == ID_EX_RegisterRs) &&
+                (EX_MEM_RegisterRd != ID_EX_RegisterRs) ||
+                ~EX_MEM_RegWrite )
+            ForwardA = 2'b01;
+
+        else if( EX_MEM_RegWrite &&
+            (EX_MEM_RegisterRd != 0) &&
+            (EX_MEM_RegisterRd == ID_EX_RegisterRs))
+            ForwardA = 2'b10;
+
+        else
+            ForwardA = 2'b00;
+
+    always @*
+        if (MEM_WB_RegWrite &&
+                (MEM_WB_RegisterRd != 0) &&
+                (MEM_WB_RegisterRd == ID_EX_RegisterRt) &&
+                ((EX_MEM_RegisterRd != ID_EX_RegisterRt) ||
+                ~EX_MEM_RegWrite ))
+            ForwardA = 2'b01;
+
+
+        else if ( EX_MEM_RegWrite &&
+            (EX_MEM_RegisterRd != 0) &&
+            (EX_MEM_RegisterRd == ID_EX_RegisterRt))
+            ForwardB = 2'b10;
+
+        else
+            ForwardB = 2'b00;
 
 endmodule
 
