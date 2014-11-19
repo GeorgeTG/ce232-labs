@@ -154,7 +154,7 @@ assign RegWriteAddr = (IDEX_RegDst==1'b0) ? IDEX_instr_rt : IDEX_instr_rd;
       begin
        EXMEM_ALUOut <= ALUOut;
        EXMEM_RegWriteAddr <= RegWriteAddr;
-       EXMEM_MemWriteData <= IDEX_rdB;
+       EXMEM_MemWriteData <= ALUInB;
        EXMEM_Zero <= Zero;
        EXMEM_Branch <= IDEX_Branch;
        EXMEM_MemRead <= IDEX_MemRead;
@@ -180,12 +180,12 @@ always @(IDEX_rdA, wRegData, EXMEM_ALUOut, ForwardA) begin
     endcase
 end
 
-always @(ALUInBMux, wRegData, EXMEM_ALUOut, ForwardA) begin
-    case(ForwardA)
+always @(ALUInBMux, wRegData, EXMEM_ALUOut, ForwardB) begin
+    case(ForwardB)
         0 : ALUInB = ALUInBMux;
         1 : ALUInB = wRegData;
         2 : ALUInB = EXMEM_ALUOut;
-        default: ALUInA = 0;
+        default: ALUInB = 0;
     endcase
 end
 

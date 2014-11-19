@@ -5,7 +5,7 @@
 // and monitor the outputs. This is what all testbenches do
 
 `include "constants.h"
-`timescale 1ns/1ps
+`timescale 1ns/1ns
 
 module cpu_tb;
 integer   i;
