@@ -26,6 +26,9 @@ module cpu(input clock, input reset);
  wire [1:0] ALUcntrl;
  wire [15:0] imm;
  wire [1:0] ForwardA, ForwardB;
+ wire Stall;
+ reg MemRead_new, MemWrite_new, MemToReg_new, Branch_new, ALUSrc_new, RegDst_new, RegWrite_new;
+ reg [1:0] ALUcntrl_new;
 
 
 /***************** Instruction Fetch Unit (IF)  ****************/
@@ -35,20 +38,18 @@ module cpu(input clock, input reset);
        PC <= -1;
     else if (PC == -1)
        PC <= 0;
-    else
+    else if (Stall == 1'b0)
        PC <= PC + 4;
   end
 
   // IFID pipeline register
  always @(posedge clock or negedge reset)
   begin
-    if (reset == 1'b0)
-      begin
+    if (reset == 1'b0) begin
        IFID_PCplus4 <= 32'b0;
        IFID_instr <= 32'b0;
     end
-    else
-      begin
+    else if (Stall == 1'b0) begin
        IFID_PCplus4 <= PC + 32'd4;
        IFID_instr <= instr;
     end
@@ -69,6 +70,8 @@ assign signExtend = {{16{imm[15]}}, imm};
 
 // Register file
 RegFile cpu_regs(clock, reset, instr_rs, instr_rt, MEMWB_RegWriteAddr, MEMWB_RegWrite, wRegData, rdA, rdB);
+
+
 
   // IDEX pipeline register
  always @(posedge clock or negedge reset)
@@ -98,16 +101,17 @@ RegFile cpu_regs(clock, reset, instr_rs, instr_rt, MEMWB_RegWriteAddr, MEMWB_Reg
        IDEX_instr_rd <= instr_rd;
        IDEX_instr_rs <= instr_rs;
        IDEX_instr_rt <= instr_rt;
-       IDEX_RegDst <= RegDst;
-       IDEX_ALUcntrl <= ALUcntrl;
-       IDEX_ALUSrc <= ALUSrc;
-       IDEX_Branch <= Branch;
-       IDEX_MemRead <= MemRead;
-       IDEX_MemWrite <= MemWrite;
-       IDEX_MemToReg <= MemToReg;
-       IDEX_RegWrite <= RegWrite;
-    end
-  end
+
+       IDEX_MemRead <= MemRead_new;
+       IDEX_MemWrite <= MemWrite_new;
+       IDEX_MemToReg <= MemToReg_new;
+       IDEX_Branch <= Branch_new;
+       IDEX_ALUcntrl <= ALUcntrl_new;
+       IDEX_ALUSrc <= ALUSrc_new;
+       IDEX_RegDst <= RegDst_new;
+       IDEX_RegWrite <= RegWrite_new;
+    end // if (reset..)
+  end //always
 
 // Main Control Unit
 fsm_main fsm_main (RegDst,
@@ -121,17 +125,39 @@ fsm_main fsm_main (RegDst,
                   opcode);
 
 // Instantiation of Control Unit that generates stalls goes here
+always @(MemRead, MemWrite, MemToReg, Branch, ALUcntrl, ALUSrc, RegDst, RegWrite, Stall)
+    if (Stall == 1'b0) begin
+        MemRead_new = MemRead;
+        MemWrite_new = MemWrite;
+        MemToReg_new = MemToReg;
+        Branch_new = Branch;
+        ALUSrc_new = ALUSrc;
+        RegDst_new = RegDst;
+        RegWrite_new = RegWrite;
+        ALUcntrl_new = ALUcntrl;
+    end
+    else begin
+        MemRead_new = 1'b0;
+        MemWrite_new = 1'b0;
+        MemToReg_new = 1'b0;
+        Branch_new = 1'b0;
+        ALUSrc_new = 1'b0;
+        RegDst_new = 1'b0;
+        RegWrite_new = 1'b0;
+        ALUcntrl_new = 2'b0;
+    end
 
+
+HazardDetectionUnit hazard_detector(IDEX_instr_rt, IDEX_MemRead, instr_rt, instr_rs, Stall);
 
 /***************** Execution Unit (EX)  ****************/
 
 //assign ALUInA = IDEX_rdA;
 
 //assign ALUInB
-assign ALUInBMux = (IDEX_ALUSrc == 1'b0) ? IDEX_rdB : IDEX_signExtend;
 
 //  ALU
-ALU  #32 cpu_alu(ALUOut, Zero, ALUInA, ALUInB, ALUOp);
+ALU  #32 cpu_alu(ALUOut, Zero, ALUInA, ALUInBMux, ALUOp);
 
 assign RegWriteAddr = (IDEX_RegDst==1'b0) ? IDEX_instr_rt : IDEX_instr_rd;
 
@@ -169,7 +195,7 @@ assign RegWriteAddr = (IDEX_RegDst==1'b0) ? IDEX_instr_rt : IDEX_instr_rd;
 
    // Instantiation of control logic for Forwarding goes here
 
-ForwardingUnit forwarding(IDEX_rdA, IDEX_rdB, RegWriteAddr, EXMEM_RegWrite, MEMWB_RegWrite, MEMWB_RegWriteAddr, ForwardA, ForwardB);
+ForwardingUnit forwarding(IDEX_instr_rt, IDEX_instr_rs, EXMEM_RegWriteAddr, EXMEM_RegWrite, MEMWB_RegWrite, MEMWB_RegWriteAddr, ForwardA, ForwardB);
 
 always @(IDEX_rdA, wRegData, EXMEM_ALUOut, ForwardA) begin
     case(ForwardA)
@@ -180,14 +206,16 @@ always @(IDEX_rdA, wRegData, EXMEM_ALUOut, ForwardA) begin
     endcase
 end
 
-always @(ALUInBMux, wRegData, EXMEM_ALUOut, ForwardB) begin
+always @(IDEX_rdB, wRegData, EXMEM_ALUOut, ForwardB) begin
     case(ForwardB)
-        0 : ALUInB = ALUInBMux;
+        0 : ALUInB = IDEX_rdB;
         1 : ALUInB = wRegData;
         2 : ALUInB = EXMEM_ALUOut;
         default: ALUInB = 0;
     endcase
 end
+
+assign ALUInBMux = (IDEX_ALUSrc == 1'b0) ? ALUInB : IDEX_signExtend;
 
 /***************** Memory Unit (MEM)  ****************/
 

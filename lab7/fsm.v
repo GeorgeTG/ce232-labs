@@ -58,6 +58,19 @@ module fsm_main(output reg RegDst,
             Branch = 1'b1;
             ALUcntrl = 2'b01; // sub
            end
+
+        `ADDI:
+        begin
+            RegDst = 1'b0;
+            MemRead = 1'b0;
+            MemWrite = 1'b0;
+            MemToReg = 1'b0;
+            ALUSrc = 1'b1;
+            RegWrite = 1'b1;
+            Branch = 1'b0;
+            ALUcntrl = 2'b00; //add
+        end
+
        default:
            begin
             RegDst = 1'b0;

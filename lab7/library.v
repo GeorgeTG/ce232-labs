@@ -52,10 +52,11 @@ module Memory (clock, reset, ren, wen, addr, din, dout);
   assign dout = ((wen==1'b0) && (ren==1'b1)) ? data[addr[9:0]] : 32'bx;
 
   /* Write memory in the negative edge of the clock */
-   always @(negedge clock)
-   begin
-    if (reset == 1'b1 && wen == 1'b1 && ren==1'b0)
-        data[addr[9:0]] = din;
+   always @(negedge clock) begin
+       if (reset == 1'b1 && wen == 1'b1 && ren==1'b0) begin
+            $display("[%4d] [MEMORY]  Writing: %0d at [%0d]", $time, din, addr[9:0]);
+            data[addr[9:0]] = din;
+        end
    end
 
 endmodule
@@ -77,10 +78,11 @@ module RegFile (clock, reset, raA, raB, wa, wen, wd, rdA, rdB);
   wire [31:0] rdB = data[raB];
 
   // Make sure  that register file is only written at the negative edge of the clock
-  always @(negedge clock)
-   begin
-    if (reset == 1'b1 && wen == 1'b1 && wa != 5'b0)
-        data[wa] =  wd;
+  always @(negedge clock) begin
+       if (reset == 1'b1 && wen == 1'b1 && wa != 5'b0) begin
+            $display("[%4d] [REGFILE] Writing: %0d at [%0d]", $time, wd, wa);
+            data[wa] =  wd;
+        end
    end
 
 endmodule
@@ -97,8 +99,8 @@ endmodule
 
 module ForwardingUnit
 (
-        input wire [31:0] ID_EX_RegisterRt,
-        input wire [31:0] ID_EX_RegisterRs,
+        input wire [4:0] ID_EX_RegisterRt,
+        input wire [4:0] ID_EX_RegisterRs,
         input wire [4:0] EX_MEM_RegisterRd,
         input wire EX_MEM_RegWrite,
         input wire MEM_WB_RegWrite,
@@ -116,7 +118,7 @@ module ForwardingUnit
             ForwardA = 2'b01;
 
         else if( EX_MEM_RegWrite &&
-            (EX_MEM_RegisterRd != 0) &&
+            EX_MEM_RegisterRd &&
             (EX_MEM_RegisterRd == ID_EX_RegisterRs))
             ForwardA = 2'b10;
 
@@ -129,7 +131,7 @@ module ForwardingUnit
                 (MEM_WB_RegisterRd == ID_EX_RegisterRt) &&
                 ((EX_MEM_RegisterRd != ID_EX_RegisterRt) ||
                 (~EX_MEM_RegWrite) ))
-            ForwardA = 2'b01;
+            ForwardB = 2'b01;
 
 
         else if ( EX_MEM_RegWrite &&
@@ -139,6 +141,33 @@ module ForwardingUnit
 
         else
             ForwardB = 2'b00;
+
+endmodule
+
+
+// Hazard Detection. Read ports: iD/EX RegisterRt
+//                              IF/ID RegisterRS
+//                              IF/ID RegisterRt
+//                              ID/EX MemRead
+//                 Write Ports: ForwardA
+//                              ForwardB
+
+module HazardDetectionUnit
+(
+        input wire [4:0] ID_EX_RegisterRt,
+        input wire  ID_EX_MemRead,
+        input wire [4:0] IF_ID_RegisterRt,
+        input wire [4:0] IF_ID_RegisterRs,
+
+        output reg Stall
+);
+    always@*
+        if (ID_EX_MemRead &&
+           ( (ID_EX_RegisterRt == IF_ID_RegisterRs) ||
+             (ID_EX_RegisterRt == IF_ID_RegisterRt) ))
+                Stall = 1'b1;
+        else
+            Stall = 1'b0;
 
 endmodule
 

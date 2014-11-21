@@ -35,7 +35,7 @@ initial begin  // Ta statements apo ayto to begin mexri to "end" einai seiriaka
     cpu0.cpu_regs.data[i] = i;   // Note that R0 = 0 in MIPS
 
   // Initialize Data Memory
-  $readmemh("program.hex", cpu0.cpu_IMem.data);
+  $readmemh("program3.hex", cpu0.cpu_IMem.data);
 
   // Edw, to "memory.hex" einai ena arxeio pou prepei na brisketai sto
   // directory pou trexete th Verilog kai na einai ths morfhs:
