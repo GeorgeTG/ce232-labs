@@ -1,0 +1,13 @@
+@0 01104020// <input:0> add $t0, $t0, $s0
+@1 ad5f0002// <input:1> sw $ra, 2($t2)
+@2 8d4d0002// <input:2> lw $t5, 2($t2)
+@3 01244822// <input:3> sub $t1, $t1, $a0
+@4 01ed7025// <input:4> or $t6, $t7, $t5
+@5 02129824// <input:5> and $s3, $s0, $s2
+@6 8d4e0002// <input:6> lw $t6, 2($t2)
+@7 ac1c0008// <input:7> sw $gp, 8($zero)
+@8 8c020008// <input:8> lw $v0, 8($zero)
+@9 004d2024// <input:9> and $a0, $v0, $t5
+@a 008a2025// <input:10> or $a0, $a0, $t2
+@b 00824820// <input:11> add $t1, $a0, $v0
+@c 0089e82a// <input:12> slt $sp, $a0, $t1
