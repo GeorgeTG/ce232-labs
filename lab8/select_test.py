@@ -15,7 +15,7 @@ KNRM = '\x1B[0m'
 old_file += global_extension
 info = """
     This utility will delete the file defined as old_file, and
-    copy the argument given file in it's place.
+    copy the argument given file in its place.
     This gives us the ability to test whatever file
     we want without recompiling our testbench!
 
