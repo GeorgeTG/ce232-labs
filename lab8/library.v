@@ -148,6 +148,8 @@ module ControlHazardDetectionUnit
 (
        input wire Branch,
        input wire ID_EX_RegWrite,
+       input wire EX_MEM_MemRead,
+       input wire [4:0] EX_MEM_RegisterRd,
        input wire [4:0] IF_ID_RegisterRs,
        input wire [4:0]  IF_ID_RegisterRt,
        input wire [4:0] ID_EX_RegisterRd,
@@ -161,14 +163,20 @@ module ControlHazardDetectionUnit
             ((IF_ID_RegisterRt == ID_EX_RegisterRd) ||
              (IF_ID_RegisterRs == ID_EX_RegisterRd))   )
                 Stall = 1'b1;
-        else
+        else if  ( EX_MEM_MemRead && Branch &&
+             ((IF_ID_RegisterRt == EX_MEM_RegisterRd) ||
+             (IF_ID_RegisterRs == EX_MEM_RegisterRd))   )
+                Stall = 1'b1;
+       else
             Stall = 1'b0;
+
 endmodule
 
 module ControlForwardingUnit
 (
         input wire Branch,
         input wire EX_MEM_RegWrite,
+        input wire EX_MEM_MemRead,
         input wire [4:0] EX_MEM_RegWriteAdress,
         input wire [4:0] IF_ID_RegisterRs,
         input wire [4:0] IF_ID_RegisterRt,
@@ -178,15 +186,15 @@ module ControlForwardingUnit
 );
 
     always@(Branch, EX_MEM_RegWriteAdress,EX_MEM_RegWrite, IF_ID_RegisterRs)
-        if ( Branch && EX_MEM_RegWrite &&
+        if ( Branch && EX_MEM_RegWrite &&  ~EX_MEM_MemRead &&
          (EX_MEM_RegWriteAdress == IF_ID_RegisterRs))
             ControlForwardA = 1'b1;
         else
             ControlForwardA = 1'b0;
 
     always@(Branch, EX_MEM_RegWriteAdress, EX_MEM_RegWrite, IF_ID_RegisterRt)
-        if ( Branch && EX_MEM_RegWrite &&
-         (EX_MEM_RegWriteAdress == IF_ID_RegisterRs))
+        if ( Branch && EX_MEM_RegWrite && ~EX_MEM_MemRead &&
+         (EX_MEM_RegWriteAdress == IF_ID_RegisterRt))
             ControlForwardB = 1'b1;
         else
             ControlForwardB = 1'b0;

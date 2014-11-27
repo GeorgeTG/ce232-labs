@@ -62,7 +62,7 @@ module cpu(input clock, input reset);
   assign Zero = (branch_rdA == branch_rdB);
   assign PCIncr = (signExtend << 2) + IFID_PCplus4;
 
-  ControlForwardingUnit control_frwd_unit(Branch, EXMEM_RegWrite, EXMEM_RegWriteAddr, instr_rs, instr_rt, CtrlForwardA, CtrlForwardB);
+  ControlForwardingUnit control_frwd_unit(Branch, EXMEM_RegWrite, EXMEM_MemRead, EXMEM_RegWriteAddr, instr_rs, instr_rt, CtrlForwardA, CtrlForwardB);
 
     always@(CtrlForwardA, rdA, EXMEM_ALUOut) begin
         case(CtrlForwardA)
@@ -175,7 +175,7 @@ always @(MemRead, MemWrite, MemToReg, Branch, ALUcntrl, ALUSrc, RegDst, RegWrite
         ALUcntrl_new = 2'b0;
     end
 
-ControlHazardDetectionUnit ctrl_hazard_detector(Branch, IDEX_RegWrite, instr_rs, instr_rt, RegWriteAddr, StallCtrl);
+ControlHazardDetectionUnit ctrl_hazard_detector(Branch, IDEX_RegWrite,EXMEM_MemRead, EXMEM_RegWriteAddr, instr_rs, instr_rt, RegWriteAddr, StallCtrl);
 HazardDetectionUnit hazard_detector(IDEX_instr_rt, IDEX_MemRead, instr_rt, instr_rs, StallMem);
 assign Stall = StallMem || StallCtrl;
 
