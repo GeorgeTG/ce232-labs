@@ -9,7 +9,7 @@ module fsm_main(output reg RegDst,
                 output reg ALUSrc,
                 output reg RegWrite,
                 output reg [1:0] ALUcntrl,
-                output reg PCScr,
+                output reg [1:0] PCScr,
 
                 input wire Zero,
                 input [5:0] opcode);
@@ -85,6 +85,18 @@ module fsm_main(output reg RegDst,
             ALUcntrl = 2'b00; //add
         end
 
+        `J:
+        begin
+             RegDst = 1'b0;
+             MemRead = 1'b0;
+             MemWrite = 1'b0;
+             MemToReg = 1'b0;
+             ALUSrc = 1'b0;
+             RegWrite = 1'b0;
+             Branch = 1'b0;
+             ALUcntrl = 2'b00;
+         end
+
        default:
            begin
             RegDst = 1'b0;
@@ -96,12 +108,19 @@ module fsm_main(output reg RegDst,
             ALUcntrl = 2'b00;
          end
       endcase
-    if (opcode == `BNE)
-        PCScr = ~Zero && Branch;
-    else
-        PCScr = Zero && Branch;
-
     end // always
+
+    always@(opcode, Branch, Zero)
+        if (opcode == `J)
+            PCScr = 2'b10;
+        else if ((opcode == `BNE) && (~Zero && Branch))
+            PCScr = 2'b01;
+        else if ((opcode == `BEQ) &&(Zero && Branch))
+            PCScr = 2'b01;
+        else
+            PCScr = 2'b00;
+
+
 endmodule
 
 

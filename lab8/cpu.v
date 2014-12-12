@@ -28,7 +28,7 @@ module cpu(input clock, input reset);
  wire Stall, StallCtrl, StallMem;
  reg MemRead_new, MemWrite_new, MemToReg_new, Branch_new, ALUSrc_new, RegDst_new, RegWrite_new;
  reg [1:0] ALUcntrl_new;
- wire PCScr, Flush;
+ wire [1:0] PCScr;
  reg [31:0] branch_rdA, branch_rdB;
  wire CtrlForwardA, CtrlForwardB;
 
@@ -40,16 +40,20 @@ module cpu(input clock, input reset);
     else if (PC == -1)
        PC <= 0;
     else if (Stall == 1'b0)
-        if (PCScr == 1'b1)
+        if (PCScr == 2'b01)
             PC <= PCIncr;
+        else if (PCScr == 2'b10) begin
+           // PC <= PC + 4;
+            PC <= {PC[31:28], IFID_instr[25:0]<<2 };
+        end
         else
             PC <= PC + 4;
   end
 
   // IFID pipeline register
- always @(posedge clock or negedge reset)
-  begin
-    if (reset == 1'b0 || PCScr == 1'b1) begin
+ always @(posedge clock or negedge reset)begin
+                            //Don't flush when we are stalling
+    if (reset == 1'b0 || ( (PCScr != 2'b00) && (Stall == 1'b0) )) begin
        IFID_PCplus4 <= 32'b0;
        IFID_instr <= 32'b0;
     end

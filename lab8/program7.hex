@@ -1,0 +1,7 @@
+@0 21080003// <input:1> addi $t0, $t0, 3
+@1 08000004// <input:2> j label1
+@2 2108339d// <input:3> addi $t0, $t0, 13213
+@3 21080c8d// <input:4> addi $t0, $t0, 3213
+//<label1>label1
+@4 2108ffff// <input:6> addi $t0, $t0, -1
+@5 1509fffe// <input:7> bne $t0, $t1, label1

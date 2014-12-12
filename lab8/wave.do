@@ -4,13 +4,14 @@ add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/clock
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/reset
 add wave -noupdate -divider Branch
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/Branch
+add wave -noupdate /cpu_tb/cpu0/Zero
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/branch_rdA
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/branch_rdB
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/CtrlForwardA
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/CtrlForwardB
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/StallCtrl
 add wave -noupdate -divider Basic
-add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/PC
+add wave -noupdate -radix decimal /cpu_tb/cpu0/PC
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/instr
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/ALUInA
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/ALUInBMux
@@ -21,7 +22,6 @@ add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/ForwardA
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/ForwardB
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/Stall
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/PCScr
-add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/Flush
 add wave -noupdate -divider IF_ID
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/IFID_PCplus4
 add wave -noupdate -radix hexadecimal /cpu_tb/cpu0/IFID_instr
@@ -74,7 +74,7 @@ add wave -noupdate -radix hexadecimal {/cpu_tb/cpu0/cpu_regs/data[2]}
 add wave -noupdate -radix hexadecimal {/cpu_tb/cpu0/cpu_regs/data[1]}
 add wave -noupdate -radix hexadecimal {/cpu_tb/cpu0/cpu_regs/data[0]}
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {57865 ps} 0}
+WaveRestoreCursors {{Cursor 1} {75000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 292
 configure wave -valuecolwidth 92
@@ -90,4 +90,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {99735 ps}
+WaveRestoreZoom {41256 ps} {140991 ps}
