@@ -1,0 +1,20 @@
+# started on Thu Dec 18 19:47:48 2014
+
+
+ Performance counter stats for './simple':
+
+         404544407      L1-dcache-load-misses                                       
+          38049267      L1-dcache-store-misses                                      
+
+       2,635357421 seconds time elapsed
+
+# started on Thu Dec 18 19:47:51 2014
+
+
+ Performance counter stats for './tile':
+
+          19670594      L1-dcache-load-misses                                       
+          12060577      L1-dcache-store-misses                                      
+
+       0,306529408 seconds time elapsed
+
